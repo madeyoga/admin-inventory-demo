@@ -1,21 +1,40 @@
 import csv
 from django.contrib import admin
 from django.http import HttpResponse
+from unfold.admin import ModelAdmin, TabularInline
+from unfold.contrib.filters.admin import (
+    AutocompleteSelectFilter
+)
 
 from inventory.models import Category, Product, StockMovement
 
 
-class StockMovementInline(admin.TabularInline):
+@admin.register(StockMovement)
+class StockMovementAdmin(ModelAdmin):
+    list_display = ('id', 'type', 'timestamp', 'quantity', 'product')
+    list_filter = ('type', 'timestamp')
+    search_fields = ('id',)
+    autocomplete_fields = [
+        'product'
+    ]
+
+
+class StockMovementInline(TabularInline):
     model = StockMovement
     extra = 1
 
 
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'stock', 'price')
-    search_fields = ('name', 'sku')
-    list_filter = ('category',)
+class ProductAdmin(ModelAdmin):
+    list_display = ('id', 'name', 'category', 'stock', 'price')
+    search_fields = ('id', 'name', 'sku')
+    list_filter = (
+        ["category", AutocompleteSelectFilter],
+    )
     inlines = [StockMovementInline]
+    autocomplete_fields = [
+        'category',
+    ]
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('category')  # Fix N+1
@@ -34,4 +53,14 @@ class ProductAdmin(admin.ModelAdmin):
     export_to_csv.short_description = "Export selected products to CSV"
 
 
-admin.site.register(Category)
+@admin.register(Category)
+class CategoryAdmin(ModelAdmin):
+    list_display = [
+        'id',
+        'name',
+    ]
+
+    search_fields = [
+        'id',
+        'name',
+    ]
