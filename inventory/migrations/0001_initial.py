@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("name", models.CharField(max_length=100)),
-                ("slug", models.SlugField(unique=True)),
+                ("slug", models.SlugField(blank=True, default="")),
             ],
         ),
         migrations.CreateModel(
